@@ -1,7 +1,24 @@
 const { Contact } = require("../../models");
 
-const getAllContacts = async (_, res) => {
-  const contacts = await Contact.find({}).sort({ name: 1 });
+const getAllContacts = async (req, res) => {
+  const { _id } = req.user;
+  const { page = 1, limit = 20, favorite = null } = req.query;
+  const skipped = (page - 1) * limit;
+  const skip = skipped < 0 ? 0 : skipped;
+
+  const contacts = await Contact.find(
+    {
+      owner: _id,
+      ...(favorite === "false" || favorite === "true" ? { favorite } : {}),
+    },
+    "",
+    {
+      skip,
+      limit: Number(limit),
+    }
+  )
+    .populate("owner", "_id name email subscription")
+    .sort({ name: 1 });
 
   res.json({
     status: "success",

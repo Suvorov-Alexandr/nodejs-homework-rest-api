@@ -12,6 +12,7 @@ const contactSchema = Schema(
     email: {
       type: String,
       required: [true, "Set email for contact"],
+      unique: true,
     },
     phone: {
       type: String,
@@ -26,6 +27,11 @@ const contactSchema = Schema(
       required: true,
       unique: true,
       match: codeRegexp,
+    },
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: "user",
+      required: true,
     },
   },
   { versionKey: false, timestamps: true }
