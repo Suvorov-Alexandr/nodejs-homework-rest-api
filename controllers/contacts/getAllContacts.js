@@ -5,6 +5,7 @@ const getAllContacts = async (req, res) => {
   const { page = 1, limit = 20, favorite = null } = req.query;
   const skipped = (page - 1) * limit;
   const skip = skipped < 0 ? 0 : skipped;
+  const limited = limit > 20 ? 20 : limit;
 
   const contacts = await Contact.find(
     {
@@ -14,7 +15,7 @@ const getAllContacts = async (req, res) => {
     "",
     {
       skip,
-      limit: Number(limit),
+      limit: Number(limited),
     }
   )
     .populate("owner", "_id name email subscription")
@@ -27,6 +28,8 @@ const getAllContacts = async (req, res) => {
     data: {
       result: contacts,
     },
+    skip,
+    limit: Number(limit),
   });
 };
 

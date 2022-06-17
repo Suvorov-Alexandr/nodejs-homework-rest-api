@@ -1,8 +1,8 @@
 const express = require("express");
-const router = express.Router();
 const { joiSchema, joiStatusSchema } = require("../../models/contact");
 const { auth, validation, ctrlWrapper } = require("../../middlewares");
 const { contacts: ctrl } = require("../../controllers");
+const router = express.Router();
 
 router.get("/", auth, ctrlWrapper(ctrl.getAllContacts));
 
