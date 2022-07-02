@@ -1,6 +1,8 @@
 const { Conflict } = require("http-errors");
-const { User } = require("../../models");
 const gravatar = require("gravatar");
+const { v4 } = require("uuid");
+const { User } = require("../../models");
+const { sendEmail } = require("../../helpers");
 
 const signup = async (req, res) => {
   const { name, email, password, subscription } = req.body;
@@ -11,9 +13,27 @@ const signup = async (req, res) => {
   }
 
   const avatarURL = gravatar.url(email, {}, true);
-  const newUser = new User({ name, email, subscription, avatarURL });
+  const verificationToken = v4();
+
+  const newUser = new User({
+    name,
+    email,
+    password,
+    subscription,
+    avatarURL,
+    verificationToken,
+  });
   newUser.setPassword(password);
-  newUser.save();
+  await newUser.save();
+
+  const letterTemplate = {
+    to: email,
+    subject: "Email confirmation",
+    html: `<h3>Hello ${name} welcome you!</h3> <br/> <a target="_blank" style="text-decoration:none" href="http://localhost:3000/api/users/verify/${verificationToken}">
+        <b>Please, click here for verify email.</b>
+      </a>`,
+  };
+  await sendEmail(letterTemplate);
 
   res.status(201).json({
     status: "success",
@@ -23,8 +43,8 @@ const signup = async (req, res) => {
       user: {
         name,
         email,
-        subscription,
         avatarURL,
+        verificationToken,
       },
     },
   });
