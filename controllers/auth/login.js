@@ -1,4 +1,4 @@
-const { Unauthorized } = require("http-errors");
+const { Unauthorized, Conflict } = require("http-errors");
 const jwt = require("jsonwebtoken");
 const { User } = require("../../models");
 const { SECRET_KEY } = process.env;
@@ -7,8 +7,14 @@ const login = async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
 
-  if (!user || !user.comparePassword(password)) {
-    throw new Unauthorized("Email or password is wrong");
+  if (!user || !user.verify || !user.comparePassword(password)) {
+    throw new Unauthorized(
+      "Email is wrong or not verify, or password is wrong"
+    );
+  }
+
+  if (user.token) {
+    throw new Conflict(`This user ${email} is already logged in`);
   }
 
   const payload = {
@@ -23,6 +29,10 @@ const login = async (req, res) => {
     message: `Welcome ${user.name}`,
     data: {
       token,
+      user: {
+        email,
+        message: "Verification successful",
+      },
     },
   });
 };
